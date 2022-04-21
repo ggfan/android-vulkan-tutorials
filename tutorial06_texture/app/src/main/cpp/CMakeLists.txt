@@ -21,6 +21,7 @@ project(vktuts)
 #     https://d.android.com/games/agdk/integrate-game-activity
 # for the detailed instructions.
 find_package(game-activity REQUIRED CONFIG)
+find_package(games-memory-advice REQUIRED CONFIG)
 
 # build Vulkan app
 get_filename_component(REPO_ROOT_DIR
@@ -62,4 +63,5 @@ set_target_properties(shaderc PROPERTIES IMPORTED_LOCATION
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
     game-activity::game-activity
+    games-memory-advice::memory_advice
     log android shaderc)

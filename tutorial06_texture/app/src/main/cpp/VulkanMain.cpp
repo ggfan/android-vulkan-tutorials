@@ -21,6 +21,7 @@
 #include <stb/stb_image.h>
 #include "CreateShaderModule.h"
 #include "VulkanMain.hpp"
+#include <memory_advice/memory_advice.h>
 
 // Android log function wrappers
 static const char* kTAG = "Vulkan-Tutorial06";
@@ -1251,6 +1252,9 @@ bool VulkanDrawFrame(void) {
       .pResults = &result,
   };
   vkQueuePresentKHR(device.queue_, &presentInfo);
+
+  // Poll memory status
+
   return true;
 }
 

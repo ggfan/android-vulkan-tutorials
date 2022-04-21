@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include <android/log.h>
+#include <memory_advice/memory_advice.h>
 #include "VulkanMain.hpp"
+#include <jni.h>
 
 // Process the next main command.
 void handle_cmd(android_app* app, int32_t cmd) {
@@ -31,10 +33,22 @@ void handle_cmd(android_app* app, int32_t cmd) {
   }
 }
 
+JavaVM* gVM = nullptr;
+JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
+  gVM = vm;
+
+  return JNI_VERSION_1_6;
+}
+
 void android_main(struct android_app* app) {
 
   // Set the callback to process system events
   app->onAppCmd = handle_cmd;
+
+  JNIEnv *env = nullptr;
+  gVM->AttachCurrentThread(&env, NULL);
+  jobject javaGameActivity = env->NewGlobalRef(app->activity->javaGameActivity);
+  MemoryAdvice_init(env, javaGameActivity);
 
   // Used to poll the events in the main loop
   int events;
@@ -52,4 +66,5 @@ void android_main(struct android_app* app) {
       VulkanDrawFrame();
     }
   } while (app->destroyRequested == 0);
+  env->DeleteGlobalRef(javaGameActivity);
 }
