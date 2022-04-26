@@ -15,13 +15,48 @@
 package com.android.example.vulkan.tutorials.five;
 
 import com.google.androidgamesdk.GameActivity;
+import com.google.androidgamesdk.gametextinput.State;
+
 import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 
 public class MainActivity extends GameActivity {
-
+    private final String logTag = "VulkanTutorial05";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        Log.i(logTag, "OnTouchEvent:" + event.toString());
+        return super.onTouchEvent(event);
+    }
+
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        Log.i(logTag, "onGenericMotionEvent: " + event.toString());
+        return super.onGenericMotionEvent(event);
+    }
+
+    @Override
+    public boolean onKeyUp(final int keyCode, KeyEvent event) {
+        Log.i(logTag, "onKeyUp: " + event);
+        return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyDown(final int keyCode, KeyEvent event) {
+        Log.i(logTag, "onKeyDown: " + event);
+        return super.onKeyDown(keyCode, event);
+    }
+
+    // Called when the IME has changed the input
+    @Override
+    public void stateChanged(State newState, boolean dismissed) {
+        super.stateChanged(newState, dismissed);
     }
     static {
         System.loadLibrary("vktuts");

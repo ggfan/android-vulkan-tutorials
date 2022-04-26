@@ -1238,7 +1238,7 @@ bool VulkanDrawFrame(void) {
   CALL_VK(
       vkWaitForFences(device.device_, 1, &render.fence_, VK_TRUE, 100000000));
 
-  LOGI("Drawing frames......");
+  // LOGI("Drawing frames......");
 
   VkResult result;
   VkPresentInfoKHR presentInfo{

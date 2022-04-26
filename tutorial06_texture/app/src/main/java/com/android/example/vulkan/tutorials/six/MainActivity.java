@@ -25,7 +25,7 @@ public class MainActivity extends GameActivity {
     }
     static {
         System.loadLibrary("vktuts");
-        System.loadLibrary("memory_advice");
+        // System.loadLibrary("memory_advice");
     }
 }
 
