@@ -8,7 +8,7 @@ apply from: 'download_vvl.gradle'
 // This project's build scripts follows
 android {
     compileSdkVersion 33
-    ndkVersion '22.1.7171670'
+    ndkVersion '25.2.9519653'
     defaultConfig {
         applicationId "com.android.example.vulkan.tutorials.two"
         minSdkVersion 26
@@ -17,14 +17,15 @@ android {
         versionName  "1.1.0"
         externalNativeBuild {
             cmake {
-                abiFilters "armeabi-v7a", 'arm64-v8a', 'x86', 'x86_64'
+                abiFilters "armeabi-v7a", 'arm64-v8a'
+                // To use emulator, enable 'x86', 'x86_64'
                 arguments '-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=c++_static'
             }
         }
     }
     externalNativeBuild {
         cmake {
-            version '3.18.1'
+            version '3.22.1'
             path 'src/main/cpp/CMakeLists.txt'
         }
     }
@@ -34,6 +35,6 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.5.1'
-    implementation "androidx.games:games-activity:1.2.2"
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation "androidx.games:games-activity:2.0.0-rc01"
 }

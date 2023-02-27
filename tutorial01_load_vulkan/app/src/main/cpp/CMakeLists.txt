@@ -22,22 +22,27 @@ project(vktuts)
 # for the detailed instructions.
 find_package(game-activity REQUIRED CONFIG)
 
-set(SRC_DIR ${CMAKE_SOURCE_DIR})
 get_filename_component(REPO_ROOT_DIR
-    ${CMAKE_SOURCE_DIR}/../../../../..  ABSOLUTE)
+  ${CMAKE_SOURCE_DIR}/../../../../..  ABSOLUTE)
 set(COMMON_DIR ${REPO_ROOT_DIR}/common)
 
-add_library(${CMAKE_PROJECT_NAME} SHARED
-    main.cpp
-    ${COMMON_DIR}/vulkan_wrapper/vulkan_wrapper.cpp
-    ${COMMON_DIR}/src/GameActivitySources.cpp)
+add_subdirectory(${COMMON_DIR}/vulkan_wrapper
+  ${CMAKE_CURRENT_BINARY_DIR}/vulkan_wrapper)
+add_subdirectory(${COMMON_DIR}/utils
+  ${CMAKE_CURRENT_BINARY_DIR}/utils)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -std=c++11 \
-                     -DVK_USE_PLATFORM_ANDROID_KHR")
+add_library(${CMAKE_PROJECT_NAME} SHARED
+  main.cpp
+  ${COMMON_DIR}/src/GameActivitySources.cpp)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -std=c++11")
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    ${COMMON_DIR}/vulkan_wrapper)
+  ${COMMON_DIR}/vulkan_wrapper
+  ${COMMON_DIR}/utils)
 target_link_libraries(${CMAKE_PROJECT_NAME}
-    game-activity::game-activity
-    log
-    android)
+  game-activity::game-activity
+  vk_utils
+  vk_wrapper
+  log
+  android)

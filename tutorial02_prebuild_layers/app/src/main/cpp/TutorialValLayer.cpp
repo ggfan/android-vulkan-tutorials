@@ -12,28 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include "TutorialValLayer.hpp"
-
-#include <android/log.h>
+#define DEBUG_TAG "vkTutorial02"
+#include "debug.hpp"
+#include "vulkan_debug.hpp"
+#include "vulkan_utils.hpp"
 
 #include <cassert>
-
-// Android log function wrappers
-static const char* kTAG = "Vulkan-Tutorial02";
-#define LOGI(...) \
-  ((void)__android_log_print(ANDROID_LOG_INFO, kTAG, __VA_ARGS__))
-#define LOGW(...) \
-  ((void)__android_log_print(ANDROID_LOG_WARN, kTAG, __VA_ARGS__))
-#define LOGE(...) \
-  ((void)__android_log_print(ANDROID_LOG_ERROR, kTAG, __VA_ARGS__))
-
-// Vulkan call wrapper
-#define CALL_VK(func)                                                 \
-  if (VK_SUCCESS != (func)) {                                         \
-    __android_log_print(ANDROID_LOG_ERROR, "Tutorial ",               \
-                        "Vulkan error. File[%s], line[%d]", __FILE__, \
-                        __LINE__);                                    \
-    assert(false);                                                    \
-  }
 
 /**
  * Validation Layer name

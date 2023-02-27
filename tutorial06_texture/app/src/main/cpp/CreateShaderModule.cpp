@@ -16,7 +16,10 @@
  */
 
 #include "CreateShaderModule.h"
-#include <android/log.h>
+#define DEBUG_TAG "vkTutorial06"
+#include <debug.hpp>
+#include <vulkan_utils.hpp>
+#include <vulkan_debug.hpp>
 #include <shaderc/shaderc.hpp>
 
 // Translate Vulkan Shader Type to shaderc shader type
@@ -35,8 +38,7 @@ shaderc_shader_kind getShadercShaderType(VkShaderStageFlagBits type) {
     case VK_SHADER_STAGE_COMPUTE_BIT:
       return shaderc_glsl_compute_shader;
     default:
-      __android_log_assert("invalid VKShaderStageFlagBits",
-                           "tutorial06_texture", "type = %08x", type);
+      ASSERT("invalid VKShaderStageFlagBits", "type = %08x", type);
   }
   return static_cast<shaderc_shader_kind>(-1);
 }

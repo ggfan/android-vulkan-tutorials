@@ -11,9 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef __VALLAYER_HPP__
-#define __VALLAYER_HPP__
-#include <vulkan_wrapper.h>
+#pragma once
+
+#include "vulkan_wrapper.h"
 #include <iostream>
 #include <map>
 #include <vector>
@@ -105,4 +105,3 @@ class LayerAndExtensions {
   void initDevExtensions(void*);
 };
 
-#endif  // __VALLAYER_HPP__

@@ -15,8 +15,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 31
-    ndkVersion '22.1.7171670'
+    compileSdkVersion 33
+    ndkVersion '25.2.9519653'
 
     defaultConfig {
         applicationId  "com.android.example.vulkan.tutorials.four"
@@ -27,14 +27,14 @@ android {
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=c++_static'
-                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+                abiFilters 'armeabi-v7a', 'arm64-v8a'
             }
         }
     }
 
     externalNativeBuild {
         cmake {
-            version '3.18.1'
+            version '3.22.1'
             path    'src/main/cpp/CMakeLists.txt'
         }
     }
@@ -44,6 +44,6 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation "androidx.games:games-activity:1.1.0"
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation "androidx.games:games-activity:2.0.0-rc01"
 }

@@ -1,5 +1,6 @@
 Tutorial 01
 ===========
-Loading Vulkan to Andriod Application, and create a vulkan device.
-
-
+This sample demonstrates steps to create a logica Vulkan Device (VkDevice):
+- create an Instance (vkCreateInstance)
+- select a PhysicalDevice & its PhysicalQueueFamily
+- create a logic device (vkCreateDevice)

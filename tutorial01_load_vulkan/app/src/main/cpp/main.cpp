@@ -12,29 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <android/log.h>
-#include <cassert>
-#include <vector>
+#define DEBUG_TAG "VkTutorial01"
+#include "debug.hpp"
+#include "vulkan_utils.hpp"
+#include "vulkan_debug.hpp"
 #include <vulkan_wrapper.h>
+
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 
-// Android log function wrappers
-static const char* kTAG = "Vulkan-Tutorial01";
-#define LOGI(...) \
-  ((void)__android_log_print(ANDROID_LOG_INFO, kTAG, __VA_ARGS__))
-#define LOGW(...) \
-  ((void)__android_log_print(ANDROID_LOG_WARN, kTAG, __VA_ARGS__))
-#define LOGE(...) \
-  ((void)__android_log_print(ANDROID_LOG_ERROR, kTAG, __VA_ARGS__))
-
-// Vulkan call wrapper
-#define CALL_VK(func)                                                 \
-  if (VK_SUCCESS != (func)) {                                         \
-    __android_log_print(ANDROID_LOG_ERROR, "Tutorial ",               \
-                        "Vulkan error. File[%s], line[%d]", __FILE__, \
-                        __LINE__);                                    \
-    assert(false);                                                    \
-  }
+#include <cassert>
+#include <vector>
 
 // Global variables
 VkInstance tutorialInstance;
@@ -46,25 +33,10 @@ VkSurfaceKHR tutorialSurface;
 // This is where we will initialise everything
 bool initialized_ = false;
 bool initialize(android_app* app);
-
-// Functions interacting with Android native activity
-void android_main(struct android_app* state);
 void terminate(void);
+
+// Functions interacting with AndroidX GameActivity.
 void handle_cmd(android_app* app, int32_t cmd);
-
-// typical Android NativeActivity entry function
-void android_main(struct android_app* app) {
-  app->onAppCmd = handle_cmd;
-
-  int events;
-  android_poll_source* source;
-  do {
-    if (ALooper_pollAll(initialized_ ? 1 : 0, nullptr, &events,
-                        (void**)&source) >= 0) {
-      if (source != NULL) source->process(app, source);
-    }
-  } while (app->destroyRequested == 0);
-}
 
 bool initialize(android_app* app) {
   // Load Android vulkan and retrieve vulkan API function pointers
@@ -83,7 +55,7 @@ bool initialize(android_app* app) {
       .apiVersion = VK_MAKE_VERSION(1, 1, 0),
   };
 
-  // prepare necessary extensions: Vulkan on Android need these to function
+  // Prepare necessary extensions: Vulkan on Android need these to function
   std::vector<const char *> instanceExt, deviceExt;
   instanceExt.push_back("VK_KHR_surface");
   instanceExt.push_back("VK_KHR_android_surface");
@@ -101,7 +73,7 @@ bool initialize(android_app* app) {
   };
   CALL_VK(vkCreateInstance(&instanceCreateInfo, nullptr, &tutorialInstance));
 
-  // if we create a surface, we need the surface extension
+  // If we create a surface, we need the surface extension
   VkAndroidSurfaceCreateInfoKHR createInfo{
       .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
       .pNext = nullptr,
@@ -111,9 +83,9 @@ bool initialize(android_app* app) {
                                     &tutorialSurface));
 
   // Find one GPU to use:
-  // On Android, every GPU device is equal -- supporting
-  // graphics/compute/present
-  // for this sample, we use the very first GPU device found on the system
+  //   On Android, every GPU device is equal -- supporting
+  //   graphics/compute/present
+  //   for this sample, we use the very first GPU device found on the system
   uint32_t gpuCount = 0;
   CALL_VK(vkEnumeratePhysicalDevices(tutorialInstance, &gpuCount, nullptr));
   VkPhysicalDevice tmpGpus[gpuCount];
@@ -123,33 +95,13 @@ bool initialize(android_app* app) {
   // check for vulkan info on this GPU device
   VkPhysicalDeviceProperties gpuProperties;
   vkGetPhysicalDeviceProperties(tutorialGpu, &gpuProperties);
-  LOGI("Vulkan Physical Device Name: %s", gpuProperties.deviceName);
-  LOGI("Vulkan Physical Device Info: apiVersion: %x \n\t driverVersion: %x",
-       gpuProperties.apiVersion, gpuProperties.driverVersion);
-  LOGI("API Version Supported: %d.%d.%d",
-       VK_VERSION_MAJOR(gpuProperties.apiVersion),
-       VK_VERSION_MINOR(gpuProperties.apiVersion),
-       VK_VERSION_PATCH(gpuProperties.apiVersion));
+  VkLogcat log;
+  log.printGPUProperties(gpuProperties);
 
   VkSurfaceCapabilitiesKHR surfaceCapabilities;
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(tutorialGpu, tutorialSurface,
                                             &surfaceCapabilities);
-
-  LOGI("Vulkan Surface Capabilities:\n");
-  LOGI("\timage count: %u - %u\n", surfaceCapabilities.minImageCount,
-       surfaceCapabilities.maxImageCount);
-  LOGI("\tarray layers: %u\n", surfaceCapabilities.maxImageArrayLayers);
-  LOGI("\timage size (now): %dx%d\n", surfaceCapabilities.currentExtent.width,
-       surfaceCapabilities.currentExtent.height);
-  LOGI("\timage size (extent): %dx%d - %dx%d\n",
-       surfaceCapabilities.minImageExtent.width,
-       surfaceCapabilities.minImageExtent.height,
-       surfaceCapabilities.maxImageExtent.width,
-       surfaceCapabilities.maxImageExtent.height);
-  LOGI("\tusage: %x\n", surfaceCapabilities.supportedUsageFlags);
-  LOGI("\tcurrent transform: %u\n", surfaceCapabilities.currentTransform);
-  LOGI("\tallowed transforms: %x\n", surfaceCapabilities.supportedTransforms);
-  LOGI("\tcomposite alpha flags: %u\n", surfaceCapabilities.currentTransform);
+  log.printSurfaceCapabilities(surfaceCapabilities);
 
   // Find a GFX queue family
   uint32_t queueFamilyCount;
@@ -158,6 +110,7 @@ bool initialize(android_app* app) {
   std::vector<VkQueueFamilyProperties>  queueFamilyProperties(queueFamilyCount);
   vkGetPhysicalDeviceQueueFamilyProperties(tutorialGpu, &queueFamilyCount,
                                            queueFamilyProperties.data());
+  log.printQueueFamilyProperties(queueFamilyProperties.data(), queueFamilyCount);
 
   uint32_t queueFamilyIndex;
   for (queueFamilyIndex=0; queueFamilyIndex < queueFamilyCount;
@@ -207,7 +160,7 @@ void terminate(void) {
   initialized_ = false;
 }
 
-// Process the next main command.
+// Process Android app cycle commands
 void handle_cmd(android_app* app, int32_t cmd) {
   switch (cmd) {
     case APP_CMD_INIT_WINDOW:
@@ -221,4 +174,18 @@ void handle_cmd(android_app* app, int32_t cmd) {
     default:
       LOGI("event not handled: %d", cmd);
   }
+}
+
+// Typical Android GameActivity entry function.
+void android_main(struct android_app* app) {
+  app->onAppCmd = handle_cmd;
+
+  int events;
+  android_poll_source* source;
+  do {
+    if (ALooper_pollAll(initialized_ ? 1 : 0, nullptr, &events,
+                        (void**)&source) >= 0) {
+      if (source != NULL) source->process(app, source);
+    }
+  } while (app->destroyRequested == 0);
 }

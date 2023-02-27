@@ -13,33 +13,17 @@
 // limitations under the License.
 
 #include "VulkanMain.hpp"
-#include <vulkan_wrapper.h>
 
-#include <android/log.h>
+#define DEBUG_TAG "vkTutorial05"
+#include <debug.hpp>
+#include <vulkan_wrapper.h>
+#include <vulkan_debug.hpp>
+#include <vulkan_utils.hpp>
 
 #include <cassert>
 #include <cstring>
 #include <vector>
 
-// Android log function wrappers
-static const char* kTAG = "Vulkan-Tutorial05";
-#define LOGI(...) \
-  ((void)__android_log_print(ANDROID_LOG_INFO, kTAG, __VA_ARGS__))
-#define LOGW(...) \
-  ((void)__android_log_print(ANDROID_LOG_WARN, kTAG, __VA_ARGS__))
-#define LOGE(...) \
-  ((void)__android_log_print(ANDROID_LOG_ERROR, kTAG, __VA_ARGS__))
-
-// Vulkan call wrapper
-#define CALL_VK(func)                                                 \
-  if (VK_SUCCESS != (func)) {                                         \
-    __android_log_print(ANDROID_LOG_ERROR, "Tutorial ",               \
-                        "Vulkan error. File[%s], line[%d]", __FILE__, \
-                        __LINE__);                                    \
-    assert(false);                                                    \
-  }
-
-// Global Variables ...
 struct VulkanDeviceInfo {
   bool initialized_;
 
@@ -824,6 +808,7 @@ void DeleteVulkan(void) {
 
 // Draw one frame
 bool VulkanDrawFrame(void) {
+  static uint32_t frameCount = 0;
   uint32_t nextIndex;
   // Get the framebuffer index we should draw in
   CALL_VK(vkAcquireNextImageKHR(device.device_, swapchain.swapchain_,
@@ -846,7 +831,7 @@ bool VulkanDrawFrame(void) {
   CALL_VK(
       vkWaitForFences(device.device_, 1, &render.fence_, VK_TRUE, 100000000));
 
-  LOGI("Drawing frames......");
+  LOGI("Drawing frames %d ......", ++frameCount);
 
   VkResult result;
   VkPresentInfoKHR presentInfo{

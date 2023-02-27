@@ -20,24 +20,24 @@ project(vktuts)
 
 find_package(game-activity REQUIRED CONFIG)
 
-# build vulkan app
-set(LAYER_SRC_DIR ${ANDROID_NDK}/sources/third_party/vulkan/src)
-
 get_filename_component(REPO_ROOT_DIR
-   ${CMAKE_SOURCE_DIR}/../../../../..  ABSOLUTE)
+  ${CMAKE_SOURCE_DIR}/../../../../..  ABSOLUTE)
 set(COMMON_DIR ${REPO_ROOT_DIR}/common)
 
+# build the 2 dependent modules.
+add_subdirectory(${COMMON_DIR}/vulkan_wrapper
+  ${CMAKE_CURRENT_BINARY_DIR}/vulkan_wrapper)
+add_subdirectory(${COMMON_DIR}/utils
+  ${CMAKE_CURRENT_BINARY_DIR}/utils)
+
 add_library(${CMAKE_PROJECT_NAME} SHARED
-    TutorialValLayer.cpp
-    main.cpp
-    ${COMMON_DIR}/vulkan_wrapper/vulkan_wrapper.cpp
-    ${COMMON_DIR}/src/GameActivitySources.cpp)
+  main.cpp
+  TutorialValLayer.cpp
+  ${COMMON_DIR}/src/GameActivitySources.cpp)
 
-include_directories(${COMMON_DIR}/vulkan_wrapper ${LAYER_SRC_DIR}/include)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Werror       \
-                     -Wno-unused-variable -DUSE_DEBUG_EXTENTIONS \
-                     -DVK_USE_PLATFORM_ANDROID_KHR")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Werror -Wno-unused-variable")
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
-    game-activity::game-activity log android)
+  game-activity::game-activity
+  vk_wrapper vk_utils
+  log android)

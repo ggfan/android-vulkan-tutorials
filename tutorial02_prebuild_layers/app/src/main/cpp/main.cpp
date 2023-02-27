@@ -12,32 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <android/log.h>
-
-#include <cassert>
-#include <vector>
-
-#include <game-activity/native_app_glue/android_native_app_glue.h>
+#define DEBUG_TAG "vkTutorial02"
+#include "debug.hpp"
+#include "vulkan_debug.hpp"
+#include "vulkan_utils.hpp"
 #include "vulkan_wrapper.h"
 #include "TutorialValLayer.hpp"
 
-// Android log function wrappers
-static const char* kTAG = "Vulkan-Tutorial02";
-#define LOGI(...) \
-  ((void)__android_log_print(ANDROID_LOG_INFO, kTAG, __VA_ARGS__))
-#define LOGW(...) \
-  ((void)__android_log_print(ANDROID_LOG_WARN, kTAG, __VA_ARGS__))
-#define LOGE(...) \
-  ((void)__android_log_print(ANDROID_LOG_ERROR, kTAG, __VA_ARGS__))
+#include <game-activity/native_app_glue/android_native_app_glue.h>
 
-// Vulkan call wrapper
-#define CALL_VK(func)                                                 \
-  if (VK_SUCCESS != (func)) {                                         \
-    __android_log_print(ANDROID_LOG_ERROR, "Tutorial ",               \
-                        "Vulkan error. File[%s], line[%d]", __FILE__, \
-                        __LINE__);                                    \
-    assert(false);                                                    \
-  }
+#include <cassert>
+#include <vector>
 
 // Global variables
 VkInstance tutorialInstance;
@@ -49,25 +34,10 @@ VkSurfaceKHR tutorialSurface;
 // This is where we will initialise everything
 bool initialized_ = false;
 bool initialize(android_app* app);
-
-// Functions interacting with Android native activity
-void android_main(struct android_app* state);
 void terminate(void);
+
+// Functions interacting with AndroidX GameActivity
 void handle_cmd(android_app* app, int32_t cmd);
-
-// typical Android NativeActivity entry function
-void android_main(struct android_app* app) {
-  app->onAppCmd = handle_cmd;
-
-  int events;
-  android_poll_source* source;
-  do {
-    if (ALooper_pollAll(initialized_ ? 1 : 0, nullptr, &events,
-                        (void**)&source) >= 0) {
-      if (source != NULL) source->process(app, source);
-    }
-  } while (app->destroyRequested == 0);
-}
 
 bool initialize(android_app* app) {
   // Load Android vulkan and retrieve vulkan API function pointers
@@ -86,17 +56,15 @@ bool initialize(android_app* app) {
       .apiVersion = VK_MAKE_VERSION(1, 1, 0),
   };
 
-  // Enable validation and debug layer/extensions, together with other necessary
-  // extensions
+  // Enable Validation and Debug Extensions, together with other necessary extensions.
   LayerAndExtensions layerUtil;
   std::vector<const char *> layers = {"VK_LAYER_KHRONOS_validation"};
   std::vector<const char*> extensions = {"VK_KHR_surface", "VK_KHR_android_surface"};
   for (auto layerName : layers) {
-    // check vulkan sees the layers packed inside this app's APK. layers could also be
-    // be pushed to Android with adb on command line, this sample does test that approach
-    // in the sense: if you want to use the adb way, you want to use it to enable/disable too
-    //               if you want to use the source code way, pack the layer into apk
-    //    blending different ways might work, feel free to use and experiment if you prefer.
+    // Double check whether Vulkan sees the layers packed inside this app's APK. Layers could also
+    // be pushed to Android with adb command. The recommendation is:
+    //   if you want to use the adb way, you want to use it to enable/disable too.
+    //   if you want to use the source code way, pack the layer into apk.
     assert(layerUtil.isLayerSupported(layerName));
   }
   for (auto extName : extensions) {
@@ -122,7 +90,7 @@ bool initialize(android_app* app) {
   }
 
   // Create Vulkan instance, requesting all enabled layers / extensions
-  // available on the system
+  // on the system.
   VkInstanceCreateInfo instanceCreateInfo{
       .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
       .pNext = nullptr,
@@ -138,25 +106,20 @@ bool initialize(android_app* app) {
   layerUtil.hookDbgReportExt(tutorialInstance);
 
   // Find one GPU to use:
-  // On Android, every GPU device is equal -- supporting
-  // graphics/compute/present
-  // for this sample, we use the very first GPU device found on the system
+  //   On Android, every GPU device is equal -- supporting
+  //   graphics/compute/present
+  //   for this sample, we use the very first GPU device found on the system
   uint32_t gpuCount = 0;
   CALL_VK(vkEnumeratePhysicalDevices(tutorialInstance, &gpuCount, nullptr));
   VkPhysicalDevice tmpGpus[gpuCount];
   CALL_VK(vkEnumeratePhysicalDevices(tutorialInstance, &gpuCount, tmpGpus));
   tutorialGpu = tmpGpus[0];  // Pick up the first GPU Device
   
-  // check for vulkan info on this GPU device
+  // Check for vulkan info on this GPU device
   VkPhysicalDeviceProperties gpuProperties;
   vkGetPhysicalDeviceProperties(tutorialGpu, &gpuProperties);
-  LOGI("Vulkan Physical Device Name: %s", gpuProperties.deviceName);
-  LOGI("Vulkan Physical Device Info: apiVersion: %x \n\t driverVersion: %x",
-       gpuProperties.apiVersion, gpuProperties.driverVersion);
-  LOGI("API Version Supported: %d.%d.%d",
-       VK_VERSION_MAJOR(gpuProperties.apiVersion),
-       VK_VERSION_MINOR(gpuProperties.apiVersion),
-       VK_VERSION_PATCH(gpuProperties.apiVersion));
+  VkLogcat log;
+  log.printGPUProperties(gpuProperties);
 
   VkAndroidSurfaceCreateInfoKHR createInfo{
       .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
@@ -169,22 +132,7 @@ bool initialize(android_app* app) {
   VkSurfaceCapabilitiesKHR surfaceCapabilities;
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(tutorialGpu, tutorialSurface,
                                             &surfaceCapabilities);
-
-  LOGI("Vulkan Surface Capabilities:\n");
-  LOGI("\timage count: %u - %u\n", surfaceCapabilities.minImageCount,
-       surfaceCapabilities.maxImageCount);
-  LOGI("\tarray layers: %u\n", surfaceCapabilities.maxImageArrayLayers);
-  LOGI("\timage size (now): %dx%d\n", surfaceCapabilities.currentExtent.width,
-       surfaceCapabilities.currentExtent.height);
-  LOGI("\timage size (extent): %dx%d - %dx%d\n",
-       surfaceCapabilities.minImageExtent.width,
-       surfaceCapabilities.minImageExtent.height,
-       surfaceCapabilities.maxImageExtent.width,
-       surfaceCapabilities.maxImageExtent.height);
-  LOGI("\tusage: %x\n", surfaceCapabilities.supportedUsageFlags);
-  LOGI("\tcurrent transform: %u\n", surfaceCapabilities.currentTransform);
-  LOGI("\tallowed transforms: %x\n", surfaceCapabilities.supportedTransforms);
-  LOGI("\tcomposite alpha flags: %u\n", surfaceCapabilities.currentTransform);
+  log.printSurfaceCapabilities(surfaceCapabilities);
 
   // Find a GFX queue family
   uint32_t queueFamilyCount;
@@ -215,9 +163,8 @@ bool initialize(android_app* app) {
       .flags = 0,
       .queueFamilyIndex = queueFamilyIndex,
       .queueCount = 1,
-      // Send nullptr for queue priority, instead of the priority array
-      // so debug extension could catch the bug and call back app's debug
-      // function
+      // Send nullptr for queue priority, instead of the priority array,
+      // to trigger validation layer and call back app's debug function.
       .pQueuePriorities = nullptr,  // priorities,
   };
 
@@ -245,7 +192,7 @@ void terminate(void) {
   initialized_ = false;
 }
 
-// Process the next main command.
+// Process Android app cycle commands.
 void handle_cmd(android_app* app, int32_t cmd) {
   switch (cmd) {
     case APP_CMD_INIT_WINDOW:
@@ -259,4 +206,17 @@ void handle_cmd(android_app* app, int32_t cmd) {
     default:
       LOGI("event not handled: %d", cmd);
   }
+}
+// typical AndroidX GameActivity entry function.
+void android_main(struct android_app* app) {
+    app->onAppCmd = handle_cmd;
+
+    int events;
+    android_poll_source* source;
+    do {
+        if (ALooper_pollAll(initialized_ ? 1 : 0, nullptr, &events,
+                            (void**)&source) >= 0) {
+            if (source != NULL) source->process(app, source);
+        }
+    } while (app->destroyRequested == 0);
 }

@@ -14,7 +14,9 @@
 
 // GameActivity's C/C++ code
 #include <game-activity/GameActivity.cpp>
+#include <game-activity/GameActivityEvents.cpp>
 #include <game-text-input/gametextinput.cpp>
+
 
 // Glue from GameActivity to android_main()
 // Passing GameActivity event from main thread to app native thread.

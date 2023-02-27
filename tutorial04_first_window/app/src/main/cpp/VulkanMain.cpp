@@ -12,30 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#define DEBUG_TAG "vkTutorial04"
+#include "debug.hpp"
+#include "vulkan_debug.hpp"
+#include "vulkan_wrapper.h"
+#include "vulkan_utils.hpp"
 #include "VulkanMain.hpp"
+
 #include <android/log.h>
 #include <cassert>
 #include <vector>
 #include <cstring>
-#include "vulkan_wrapper.h"
-
-// Android log function wrappers
-static const char* kTAG = "Vulkan-Tutorial04";
-#define LOGI(...) \
-  ((void)__android_log_print(ANDROID_LOG_INFO, kTAG, __VA_ARGS__))
-#define LOGW(...) \
-  ((void)__android_log_print(ANDROID_LOG_WARN, kTAG, __VA_ARGS__))
-#define LOGE(...) \
-  ((void)__android_log_print(ANDROID_LOG_ERROR, kTAG, __VA_ARGS__))
-
-// Vulkan call wrapper
-#define CALL_VK(func)                                                 \
-  if (VK_SUCCESS != (func)) {                                         \
-    __android_log_print(ANDROID_LOG_ERROR, "Tutorial ",               \
-                        "Vulkan error. File[%s], line[%d]", __FILE__, \
-                        __LINE__);                                    \
-    assert(false);                                                    \
-  }
 
 // Global Variables ...
 struct VulkanDeviceInfo {
@@ -180,7 +167,6 @@ void CreateVulkanDevice(ANativeWindow* platformWindow,
 }
 
 void CreateSwapChain(void) {
-  LOGI("->createSwapChain");
   memset(&swapchain, 0, sizeof(swapchain));
 
   // **********************************************************
@@ -238,7 +224,6 @@ void CreateSwapChain(void) {
   CALL_VK(vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_,
                                   &swapchain.swapchainLength_, nullptr));
   delete[] formats;
-  LOGI("<-createSwapChain");
 }
 
 void DeleteSwapChain(void) {

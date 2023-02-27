@@ -11,8 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include <android/log.h>
 #include "VulkanMain.hpp"
+#define DEBUG_TAG "vkTutorial06"
+#include <debug.hpp>
 
 // Process the next main command.
 void handle_cmd(android_app* app, int32_t cmd) {
@@ -26,8 +27,7 @@ void handle_cmd(android_app* app, int32_t cmd) {
       DeleteVulkan();
       break;
     default:
-      __android_log_print(ANDROID_LOG_INFO, "Vulkan Tutorials",
-                          "event not handled: %d", cmd);
+      LOGI("event not handled: %d", cmd);
   }
 }
 

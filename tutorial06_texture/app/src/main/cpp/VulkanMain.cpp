@@ -12,37 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <android/log.h>
-#include <cassert>
-#include <vector>
-#include "vulkan_wrapper.h"
-#define STB_IMAGE_IMPLEMENTATION
-#define STBI_ONLY_PNG
-#include <stb/stb_image.h>
+#define DEBUG_TAG "vkTutorial06"
+#include <debug.hpp>
+#include <vulkan_wrapper.h>
+#include <vulkan_debug.hpp>
+#include <vulkan_utils.hpp>
+
 #include "CreateShaderModule.h"
 #include "VulkanMain.hpp"
 
-// Android log function wrappers
-static const char* kTAG = "Vulkan-Tutorial06";
-#define LOGI(...) \
-  ((void)__android_log_print(ANDROID_LOG_INFO, kTAG, __VA_ARGS__))
-#define LOGW(...) \
-  ((void)__android_log_print(ANDROID_LOG_WARN, kTAG, __VA_ARGS__))
-#define LOGE(...) \
-  ((void)__android_log_print(ANDROID_LOG_ERROR, kTAG, __VA_ARGS__))
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#include <stb/stb_image.h>
 
-// Vulkan call wrapper
-#define CALL_VK(func)                                                 \
-  if (VK_SUCCESS != (func)) {                                         \
-    __android_log_print(ANDROID_LOG_ERROR, "Tutorial ",               \
-                        "Vulkan error. File[%s], line[%d]", __FILE__, \
-                        __LINE__);                                    \
-    assert(false);                                                    \
-  }
-
-// A macro to check value is VK_SUCCESS
-// Used also for non-vulkan functions but return VK_SUCCESS
-#define VK_CHECK(x) CALL_VK(x)
+#include <cassert>
+#include <vector>
 
 // Global Variables ...
 struct VulkanDeviceInfo {
@@ -379,8 +363,7 @@ VkResult LoadTextureFromFile(const char* filePath,
                              struct texture_object* tex_obj,
                              VkImageUsageFlags usage, VkFlags required_props) {
   if (!(usage | required_props)) {
-    __android_log_print(ANDROID_LOG_ERROR, "tutorial texture",
-                        "No usage and required_pros");
+    LOGE("No usage or required_pros to %s", __FUNCTION__);
     return VK_ERROR_FORMAT_NOT_SUPPORTED;
   }
 
@@ -445,7 +428,7 @@ VkResult LoadTextureFromFile(const char* filePath,
                         &tex_obj->image));
   vkGetImageMemoryRequirements(device.device_, tex_obj->image, &mem_reqs);
   mem_alloc.allocationSize = mem_reqs.size;
-  VK_CHECK(AllocateMemoryTypeFromProperties(mem_reqs.memoryTypeBits,
+  CALL_VK(AllocateMemoryTypeFromProperties(mem_reqs.memoryTypeBits,
                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                                             &mem_alloc.memoryTypeIndex));
   CALL_VK(vkAllocateMemory(device.device_, &mem_alloc, nullptr, &tex_obj->mem));
@@ -455,9 +438,9 @@ VkResult LoadTextureFromFile(const char* filePath,
     const VkImageSubresource subres = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .mipLevel = 0, .arrayLayer = 0,
     };
+
     VkSubresourceLayout layout;
     void* data;
-
     vkGetImageSubresourceLayout(device.device_, tex_obj->image, &subres,
                                 &layout);
     CALL_VK(vkMapMemory(device.device_, tex_obj->mem, 0,
@@ -533,7 +516,7 @@ VkResult LoadTextureFromFile(const char* filePath,
     vkGetImageMemoryRequirements(device.device_, tex_obj->image, &mem_reqs);
 
     mem_alloc.allocationSize = mem_reqs.size;
-    VK_CHECK(AllocateMemoryTypeFromProperties(
+    CALL_VK(AllocateMemoryTypeFromProperties(
         mem_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         &mem_alloc.memoryTypeIndex));
     CALL_VK(

@@ -15,11 +15,11 @@
  *
  */
 
-#ifndef TUTORIAL06_TEXTURE_CREATESHADERMODULE_H
-#define TUTORIAL06_TEXTURE_CREATESHADERMODULE_H
+#pragma once
 
 #include <vulkan_wrapper.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
+
 /*
  * buildShaderFromFile()
  *   Create a Vulkan shader module from the given glsl shader file
@@ -50,4 +50,3 @@ VkResult buildShaderFromFile(
     VkDevice vkDevice,
     VkShaderModule* shaderOut);
 
-#endif // TUTORIAL06_TEXTURE_CREATESHADERMODULE_H

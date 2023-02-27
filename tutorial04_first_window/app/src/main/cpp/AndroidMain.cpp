@@ -11,7 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include <android/log.h>
+#define DEBUG_TAG  "VkTutorial04"
+#include "debug.hpp"
 #include "VulkanMain.hpp"
 
 // Process the next main command.
@@ -22,12 +23,12 @@ void handle_cmd(android_app* app, int32_t cmd) {
       InitVulkan(app);
       break;
     case APP_CMD_TERM_WINDOW:
-      // The window is being hidden or closed, clean it up.
+      // The window is being hidden or closed, perform cleanup.
       DeleteVulkan();
       break;
     default:
-      __android_log_print(ANDROID_LOG_INFO, "Vulkan Tutorials",
-                          "event not handled: %d", cmd);
+      LOGI("event not handled: %d", cmd);
+      break;
   }
 }
 
