@@ -85,5 +85,5 @@ VkResult buildShaderFromFile(android_app* appInfo, const char* filePath,
   static shaderSum = 0;
   shaderSum += shaderCount;
   return shaderSum;
-  // return result;
+  return result;
 }
