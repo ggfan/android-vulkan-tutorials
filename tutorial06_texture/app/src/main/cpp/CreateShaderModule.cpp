@@ -56,6 +56,8 @@ VkResult buildShaderFromFile(android_app* appInfo, const char* filePath,
   AAsset_read(file, static_cast<void*>(glslShader.data()), glslShaderLen);
   AAsset_close(file);
 
+  int shaderCount = glslShaderLen;
+
   // compile into spir-V shader
   shaderc_compiler_t compiler = shaderc_compiler_initialize();
   shaderc_compilation_result_t spvShader = shaderc_compile_into_spv(
@@ -80,5 +82,8 @@ VkResult buildShaderFromFile(android_app* appInfo, const char* filePath,
   shaderc_result_release(spvShader);
   shaderc_compiler_release(compiler);
 
-  return result;
+  static shaderSum = 0;
+  shaderSum += shaderCount;
+  return shaderSum;
+  // return result;
 }
